@@ -1,193 +1,214 @@
--- UI Library Avanzada
-local UILibrary = {}
-UILibrary.__index = UILibrary
+-- UI Library Avanzada y Completa
+local Library = {}
 
--- Crear una ventana (Window)
-function UILibrary:CreateWindow(options)
-    local window = {}
-    window.Title = options.Title or "Window"
-    window.Size = options.Size or UDim2.new(0, 450, 0, 400)
-    window.Position = options.Position or UDim2.new(0.5, -225, 0.5, -200)
-    window.MinimizeKey = options.MinimizeKey or Enum.KeyCode.M
+-- Variables para personalización
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 
-    -- Crear ScreenGui y Frame principal
-    local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-    local MainFrame = Instance.new("Frame")
-    local TitleBar = Instance.new("TextLabel")
-    local CloseButton = Instance.new("TextButton")
+-- Guarda las configuraciones del usuario
+local Configurations = {}
 
-    ScreenGui.Name = "AdvancedUILibrary"
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = ScreenGui
-    MainFrame.Size = window.Size
-    MainFrame.Position = window.Position
-    MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    MainFrame.BorderSizePixel = 0
-
-    -- Título de la ventana
-    TitleBar.Name = "TitleBar"
-    TitleBar.Parent = MainFrame
-    TitleBar.Size = UDim2.new(1, 0, 0, 40)
-    TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    TitleBar.BorderSizePixel = 0
-    TitleBar.Text = window.Title
-    TitleBar.Font = Enum.Font.GothamBold
-    TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleBar.TextSize = 18
-
-    -- Botón de cerrar
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = MainFrame
-    CloseButton.Size = UDim2.new(0, 40, 0, 40)
-    CloseButton.Position = UDim2.new(1, -40, 0, 0)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    CloseButton.Text = "X"
-    CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.TextSize = 18
-
-    -- Función de cerrar ventana
-    CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
-    end)
-
-    -- Función para minimizar la ventana
-    local isMinimized = false
-    game:GetService("UserInputService").InputBegan:Connect(function(input, isProcessed)
-        if not isProcessed and input.KeyCode == window.MinimizeKey then
-            isMinimized = not isMinimized
-            if isMinimized then
-                MainFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
-            else
-                MainFrame:TweenSize(window.Size, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
-            end
-        end
-    end)
-
-    -- Función para mover la ventana (draggable)
-    local dragging, dragStart, startPos
-    TitleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = MainFrame.Position
-        end
-    end)
-    TitleBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    TitleBar.InputChanged:Connect(function(input)
-        if dragging then
-            local delta = input.Position - dragStart
-            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-
-    -- Función para agregar pestañas
-    function window:AddTab(tabOptions)
-        local tab = {}
-        tab.Title = tabOptions.Title or "Tab"
-
-        -- Crear botón de pestaña
-        local TabButton = Instance.new("TextButton")
-        TabButton.Parent = MainFrame
-        TabButton.Size = UDim2.new(0, 100, 0, 40)
-        TabButton.Position = UDim2.new(0, 0, 0, 40) -- Posición de prueba, puedes ajustarlo
-        TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        TabButton.Text = tab.Title
-        TabButton.Font = Enum.Font.GothamBold
-        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        TabButton.TextSize = 14
-
-        function tab:AddButton(buttonOptions)
-            local Button = Instance.new("TextButton")
-            Button.Size = UDim2.new(1, -20, 0, 40)
-            Button.Position = UDim2.new(0, 10, 0, 50) -- Posición de prueba
-            Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            Button.Text = buttonOptions.Title
-            Button.Font = Enum.Font.Gotham
-            Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Button.TextSize = 14
-
-            Button.MouseButton1Click:Connect(function()
-                if buttonOptions.Callback then
-                    buttonOptions.Callback()
-                end
-            end)
-            Button.Parent = MainFrame
-        end
-
-        -- Función para añadir un toggle
-        function tab:AddToggle(toggleOptions)
-            local Toggle = Instance.new("TextButton")
-            Toggle.Size = UDim2.new(1, -20, 0, 40)
-            Toggle.Position = UDim2.new(0, 10, 0, 100)
-            Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            Toggle.Text = toggleOptions.Title
-            Toggle.Font = Enum.Font.Gotham
-            Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Toggle.TextSize = 14
-
-            local toggled = false
-            Toggle.MouseButton1Click:Connect(function()
-                toggled = not toggled
-                Toggle.Text = toggleOptions.Title .. " (" .. (toggled and "On" or "Off") .. ")"
-                if toggleOptions.Callback then
-                    toggleOptions.Callback(toggled)
-                end
-            end)
-            Toggle.Parent = MainFrame
-        end
-
-        -- Función para añadir un slider
-        function tab:AddSlider(sliderOptions)
-            local Slider = Instance.new("TextButton")
-            Slider.Size = UDim2.new(1, -20, 0, 40)
-            Slider.Position = UDim2.new(0, 10, 0, 150)
-            Slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            Slider.Text = sliderOptions.Title .. " (" .. tostring(sliderOptions.Default) .. ")"
-            Slider.Font = Enum.Font.Gotham
-            Slider.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Slider.TextSize = 14
-
-            local value = sliderOptions.Default or 50
-            Slider.MouseButton1Click:Connect(function()
-                value = value + 10 -- Incrementar el valor por 10 como ejemplo
-                if value > sliderOptions.Max then value = sliderOptions.Max end
-                Slider.Text = sliderOptions.Title .. " (" .. tostring(value) .. ")"
-                if sliderOptions.Callback then
-                    sliderOptions.Callback(value)
-                end
-            end)
-            Slider.Parent = MainFrame
-        end
-
-        -- Función para añadir un dropdown
-        function tab:AddDropdown(dropdownOptions)
-            local Dropdown = Instance.new("TextButton")
-            Dropdown.Size = UDim2.new(1, -20, 0, 40)
-            Dropdown.Position = UDim2.new(0, 10, 0, 200)
-            Dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            Dropdown.Text = dropdownOptions.Title
-            Dropdown.Font = Enum.Font.Gotham
-            Dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Dropdown.TextSize = 14
-
-            Dropdown.MouseButton1Click:Connect(function()
-                if dropdownOptions.Callback then
-                    dropdownOptions.Callback(dropdownOptions.Options[1]) -- Devolver la primera opción como ejemplo
-                end
-            end)
-            Dropdown.Parent = MainFrame
-        end
-
-        return tab
-    end
-
-    return window
+-- Guardar y cargar configuraciones
+function Library:SaveConfig(name)
+    writefile(name .. ".json", HttpService:JSONEncode(Configurations))
 end
 
--- Publicar la librería para que otros la usen
-return UILibrary
+function Library:LoadConfig(name)
+    if isfile(name .. ".json") then
+        Configurations = HttpService:JSONDecode(readfile(name .. ".json"))
+    end
+end
+
+-- Crear ventana principal con pestañas
+function Library:CreateWindow(title)
+    local Window = {}
+    
+    -- Creación de la interfaz
+    local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+    ScreenGui.Name = "AdvancedUILibrary"
+
+    local MainFrame = Instance.new("Frame", ScreenGui)
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 500, 0, 500)
+    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -250)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainFrame.BorderSizePixel = 0
+
+    local UICorner = Instance.new("UICorner", MainFrame)
+    UICorner.CornerRadius = UDim.new(0, 10)
+
+    -- Crear pestañas para la ventana
+    local TabContainer = Instance.new("Frame", MainFrame)
+    TabContainer.Size = UDim2.new(1, 0, 0.1, 0)
+    TabContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+
+    local TabLayout = Instance.new("UIListLayout", TabContainer)
+    TabLayout.FillDirection = Enum.FillDirection.Horizontal
+    TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local TabContent = Instance.new("Frame", MainFrame)
+    TabContent.Size = UDim2.new(1, 0, 0.9, 0)
+    TabContent.Position = UDim2.new(0, 0, 0.1, 0)
+    TabContent.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+    -- Función para crear pestañas
+    function Window:CreateTab(tabName)
+        local TabButton = Instance.new("TextButton", TabContainer)
+        TabButton.Text = tabName
+        TabButton.Size = UDim2.new(0.2, 0, 1, 0)
+        TabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.TextSize = 14
+
+        local TabFrame = Instance.new("Frame", TabContent)
+        TabFrame.Name = tabName
+        TabFrame.Size = UDim2.new(1, 0, 1, 0)
+        TabFrame.Visible = false
+        TabFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+        local TabLayout = Instance.new("UIListLayout", TabFrame)
+        TabLayout.FillDirection = Enum.FillDirection.Vertical
+        TabLayout.Padding = UDim.new(0, 10)
+
+        TabButton.MouseButton1Click:Connect(function()
+            for _, v in pairs(TabContent:GetChildren()) do
+                if v:IsA("Frame") then
+                    v.Visible = false
+                end
+            end
+            TabFrame.Visible = true
+        end)
+
+        return TabFrame
+    end
+
+    -- Crear un botón
+    function Window:CreateButton(parent, buttonName, callback)
+        local Button = Instance.new("TextButton", parent)
+        Button.Text = buttonName
+        Button.Size = UDim2.new(1, 0, 0.1, 0)
+        Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Button.Font = Enum.Font.Gotham
+        Button.TextSize = 16
+
+        Button.MouseButton1Click:Connect(function()
+            pcall(callback)
+        end)
+    end
+
+    -- Crear un toggle
+    function Window:CreateToggle(parent, toggleName, callback)
+        local Toggle = Instance.new("TextButton", parent)
+        Toggle.Text = toggleName
+        Toggle.Size = UDim2.new(1, 0, 0.1, 0)
+        Toggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Toggle.Font = Enum.Font.Gotham
+        Toggle.TextSize = 16
+
+        local isOn = false
+
+        Toggle.MouseButton1Click:Connect(function()
+            isOn = not isOn
+            Toggle.BackgroundColor3 = isOn and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(45, 45, 45)
+            Configurations[toggleName] = isOn
+            pcall(callback, isOn)
+        end)
+    end
+
+    -- Crear un slider
+    function Window:CreateSlider(parent, sliderName, minValue, maxValue, callback)
+        local SliderFrame = Instance.new("Frame", parent)
+        SliderFrame.Size = UDim2.new(1, 0, 0.1, 0)
+        SliderFrame.BackgroundTransparency = 1
+
+        local SliderLabel = Instance.new("TextLabel", SliderFrame)
+        SliderLabel.Text = sliderName .. ": " .. tostring(minValue)
+        SliderLabel.Font = Enum.Font.Gotham
+        SliderLabel.TextSize = 16
+        SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        SliderLabel.BackgroundTransparency = 1
+        SliderLabel.Size = UDim2.new(1, 0, 0.5, 0)
+
+        local SliderBar = Instance.new("Frame", SliderFrame)
+        SliderBar.Size = UDim2.new(1, 0, 0.5, 0)
+        SliderBar.Position = UDim2.new(0, 0, 0.5, 0)
+        SliderBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+
+        local SliderKnob = Instance.new("Frame", SliderBar)
+        SliderKnob.Size = UDim2.new(0, 10, 1, 0)
+        SliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+        local dragging = false
+        SliderKnob.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+            end
+        end)
+
+        SliderKnob.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+
+        SliderKnob.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local mousePos = game:GetService("Players").LocalPlayer:GetMouse().X
+                local relativePos = (mousePos - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X
+                relativePos = math.clamp(relativePos, 0, 1)
+
+                local value = math.floor(minValue + (maxValue - minValue) * relativePos)
+                SliderKnob.Position = UDim2.new(relativePos, -5, 0, 0)
+                SliderLabel.Text = sliderName .. ": " .. tostring(value)
+                Configurations[sliderName] = value
+                pcall(callback, value)
+            end
+        end)
+    end
+
+    -- Crear dropdown
+    function Window:CreateDropdown(parent, dropdownName, options, callback)
+        local Dropdown = Instance.new("TextButton", parent)
+        Dropdown.Text = dropdownName
+        Dropdown.Size = UDim2.new(1, 0, 0.1, 0)
+        Dropdown.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        Dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Dropdown.Font = Enum.Font.Gotham
+        Dropdown.TextSize = 16
+
+        local DropdownList = Instance.new("Frame", Dropdown)
+        DropdownList.Size = UDim2.new(1, 0, 0.5, 0)
+        DropdownList.Position = UDim2.new(0, 0, 1, 0)
+        DropdownList.Visible = false
+
+        local Layout = Instance.new("UIListLayout", DropdownList)
+        Layout.FillDirection = Enum.FillDirection.Vertical
+
+        for _, option in ipairs(options) do
+            local OptionButton = Instance.new("TextButton", DropdownList)
+            OptionButton.Text = option
+            OptionButton.Size = UDim2.new(1, 0, 0.1, 0)
+            OptionButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+
+            OptionButton.MouseButton1Click:Connect(function()
+                Dropdown.Text = option
+                DropdownList.Visible = false
+                Configurations[dropdownName] = option
+                pcall(callback, option)
+            end)
+        end
+
+        Dropdown.MouseButton1Click:Connect(function()
+            DropdownList.Visible = not DropdownList.Visible
+        end)
+    end
+
+    return Window
+end
+
+return Library
