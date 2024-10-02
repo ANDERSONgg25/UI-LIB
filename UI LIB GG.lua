@@ -1,72 +1,77 @@
 local UILibrary = {}
 
--- Helper function to create objects
-local function createObject(className, properties)
-    local object = Instance.new(className)
+-- Crea un nuevo objeto UI
+local function createObject(class, properties)
+    local obj = Instance.new(class)
     for prop, value in pairs(properties) do
-        object[prop] = value
+        obj[prop] = value
     end
-    return object
+    return obj
 end
 
--- Function to create the main window
-function UILibrary:CreateWindow(title, sizeX, sizeY)
-    local ScreenGui = createObject("ScreenGui", {Name = "ExploitUI", Parent = game:GetService("CoreGui")})
+-- Crea una ventana principal
+function UILibrary:CreateWindow(title, width, height)
+    local ScreenGui = createObject("ScreenGui", {
+        Name = "UI_Library",
+        Parent = game:GetService("CoreGui")
+    })
     
     local MainFrame = createObject("Frame", {
         Name = "MainFrame",
         Parent = ScreenGui,
-        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-        BorderSizePixel = 0,
-        Size = UDim2.new(0, sizeX or 400, 0, sizeY or 500),
-        Position = UDim2.new(0.5, -(sizeX or 400) / 2, 0.5, -(sizeY or 500) / 2)
-    })
-    
-    local UICorner = createObject("UICorner", {
-        CornerRadius = UDim.new(0, 10),
-        Parent = MainFrame
-    })
-    
-    local TitleLabel = createObject("TextLabel", {
-        Name = "Title",
-        Parent = MainFrame,
         BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        Size = UDim2.new(1, 0, 0, 50),
-        Font = Enum.Font.GothamBold,
-        Text = title or "Exploit UI",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 20
-    })
-    
-    local ContentFrame = createObject("ScrollingFrame", {
-        Name = "ContentFrame",
-        Parent = MainFrame,
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, -20, 1, -70),
-        Position = UDim2.new(0, 10, 0, 60),
-        ScrollBarThickness = 6,
-        CanvasSize = UDim2.new(0, 0, 10, 0), -- Dynamic canvas size based on content
+        Size = UDim2.new(0, width, 0, height),
+        Position = UDim2.new(0.5, -width / 2, 0.5, -height / 2),
+        Draggable = true,
+        Active = true
     })
 
-    return {Frame = MainFrame, Content = ContentFrame}
+    local TitleBar = createObject("TextLabel", {
+        Name = "TitleBar",
+        Parent = MainFrame,
+        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+        Size = UDim2.new(1, 0, 0, 30),
+        Text = title,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        Font = Enum.Font.GothamBold,
+        TextSize = 14
+    })
+
+    local Content = createObject("Frame", {
+        Name = "Content",
+        Parent = MainFrame,
+        BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+        Size = UDim2.new(1, 0, 1, -30),
+        Position = UDim2.new(0, 0, 0, 30),
+        ClipsDescendants = true
+    })
+    
+    local UIListLayout = createObject("UIListLayout", {
+        Parent = Content,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 5)
+    })
+
+    return {
+        ScreenGui = ScreenGui,
+        MainFrame = MainFrame,
+        Content = Content
+    }
 end
 
--- Function to create a button
+-- Crea un botón
 function UILibrary:CreateButton(parent, text, callback)
     local Button = createObject("TextButton", {
         Name = "Button",
         Parent = parent,
         BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-        BorderSizePixel = 0,
-        Size = UDim2.new(0, 200, 0, 40),
-        Font = Enum.Font.Gotham,
-        Text = text or "Button",
+        Size = UDim2.new(1, 0, 0, 40),
+        Text = text,
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18
+        Font = Enum.Font.Gotham,
+        TextSize = 14
     })
-    
-    createObject("UICorner", {CornerRadius = UDim.new(0, 8), Parent = Button})
-    
+
     Button.MouseButton1Click:Connect(function()
         pcall(callback)
     end)
@@ -74,183 +79,99 @@ function UILibrary:CreateButton(parent, text, callback)
     return Button
 end
 
--- Function to create a toggle
+-- Crea un toggle
 function UILibrary:CreateToggle(parent, text, callback)
-    local ToggleFrame = createObject("Frame", {
-        Name = "ToggleFrame",
+    local Toggle = createObject("Frame", {
+        Name = "Toggle",
         Parent = parent,
         BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-        Size = UDim2.new(0, 200, 0, 40)
+        Size = UDim2.new(1, 0, 0, 40)
     })
-    
-    createObject("UICorner", {CornerRadius = UDim.new(0, 8), Parent = ToggleFrame})
-    
+
     local Label = createObject("TextLabel", {
         Name = "Label",
-        Parent = ToggleFrame,
+        Parent = Toggle,
         BackgroundTransparency = 1,
-        Size = UDim2.new(0.7, 0, 1, 0),
-        Font = Enum.Font.Gotham,
-        Text = text or "Toggle",
+        Size = UDim2.new(0.8, 0, 1, 0),
+        Text = text,
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18
+        Font = Enum.Font.Gotham,
+        TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left
     })
-    
-    local ToggleButton = createObject("TextButton", {
+
+    local Button = createObject("TextButton", {
         Name = "ToggleButton",
-        Parent = ToggleFrame,
-        BackgroundColor3 = Color3.fromRGB(255, 0, 0), -- Red for off
-        Size = UDim2.new(0.3, 0, 1, 0),
-        Position = UDim2.new(0.7, 0, 0, 0),
-        Text = "",
+        Parent = Toggle,
+        BackgroundColor3 = Color3.fromRGB(100, 100, 100),
+        Size = UDim2.new(0.2, 0, 1, 0),
+        Position = UDim2.new(0.8, 0, 0, 0),
+        Text = ""
     })
-    
-    createObject("UICorner", {CornerRadius = UDim.new(0, 8), Parent = ToggleButton})
-    
-    local toggled = false
-    ToggleButton.MouseButton1Click:Connect(function()
-        toggled = not toggled
-        ToggleButton.BackgroundColor3 = toggled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0) -- Green for on, Red for off
-        pcall(callback, toggled)
+
+    local state = false
+    Button.MouseButton1Click:Connect(function()
+        state = not state
+        Button.BackgroundColor3 = state and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(100, 100, 100)
+        pcall(callback, state)
     end)
-    
-    return ToggleFrame
+
+    return Toggle
 end
 
--- Function to create a slider
-function UILibrary:CreateSlider(parent, text, minValue, maxValue, callback)
+-- Crea un slider
+function UILibrary:CreateSlider(parent, text, min, max, callback)
     local SliderFrame = createObject("Frame", {
         Name = "SliderFrame",
         Parent = parent,
         BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-        Size = UDim2.new(0, 200, 0, 40)
+        Size = UDim2.new(1, 0, 0, 40)
     })
-    
-    createObject("UICorner", {CornerRadius = UDim.new(0, 8), Parent = SliderFrame})
-    
+
     local Label = createObject("TextLabel", {
         Name = "Label",
         Parent = SliderFrame,
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, -60, 1, 0),
-        Font = Enum.Font.Gotham,
-        Text = text or "Slider",
+        Size = UDim2.new(0.8, 0, 1, 0),
+        Text = text,
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18
+        Font = Enum.Font.Gotham,
+        TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left
     })
-    
-    local SliderBar = createObject("Frame", {
-        Name = "SliderBar",
+
+    local Slider = createObject("TextButton", {
+        Name = "Slider",
         Parent = SliderFrame,
-        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-        Size = UDim2.new(0.7, 0, 0.2, 0),
-        Position = UDim2.new(0.15, 0, 0.5, -5)
+        BackgroundColor3 = Color3.fromRGB(100, 100, 100),
+        Size = UDim2.new(0.2, 0, 1, 0),
+        Position = UDim2.new(0.8, 0, 0, 0),
+        Text = min
     })
-    
-    local SliderHandle = createObject("TextButton", {
-        Name = "SliderHandle",
-        Parent = SliderBar,
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        Size = UDim2.new(0, 10, 1, 0),
-        Text = ""
-    })
-    
+
     local dragging = false
-    local function updateSlider(input)
-        local pos = math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
-        SliderHandle.Position = UDim2.new(pos, -SliderHandle.Size.X.Offset / 2, 0, 0)
-        local value = math.floor(minValue + (pos * (maxValue - minValue)))
-        pcall(callback, value)
-    end
-    
-    SliderHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
+    local currentValue = min
+
+    Slider.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local position = math.clamp(input.Position.X - SliderFrame.AbsolutePosition.X, 0, SliderFrame.AbsoluteSize.X)
+            currentValue = math.floor(((position / SliderFrame.AbsoluteSize.X) * (max - min)) + min)
+            Slider.Text = tostring(currentValue)
+            pcall(callback, currentValue)
         end
     end)
-    
-    SliderHandle.InputEnded:Connect(function(input)
+
+    game:GetService("UserInputService").InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
     end)
-    
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            updateSlider(input)
-        end
-    end)
-    
-    return SliderFrame
-end
 
--- Function to create a dropdown list
-function UILibrary:CreateDropdown(parent, text, options, callback)
-    local DropdownFrame = createObject("Frame", {
-        Name = "DropdownFrame",
-        Parent = parent,
-        BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-        Size = UDim2.new(0, 200, 0, 40)
-    })
-    
-    createObject("UICorner", {CornerRadius = UDim.new(0, 8), Parent = DropdownFrame})
-    
-    local Label = createObject("TextLabel", {
-        Name = "Label",
-        Parent = DropdownFrame,
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, -30, 1, 0),
-        Font = Enum.Font.Gotham,
-        Text = text or "Dropdown",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18
-    })
-    
-    local DropButton = createObject("TextButton", {
-        Name = "DropButton",
-        Parent = DropdownFrame,
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        Size = UDim2.new(0, 30, 1, 0),
-        Position = UDim2.new(1, -30, 0, 0),
-        Text = "▼",
-        TextColor3 = Color3.fromRGB(255, 255, 255)
-    })
-    
-    local Open = false
-    local OptionsFrame = createObject("Frame", {
-        Name = "OptionsFrame",
-        Parent = DropdownFrame,
-        BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-        Size = UDim2.new(1, 0, 0, 0),
-        Position = UDim2.new(0, 0, 1, 0),
-        ClipsDescendants = true
-    })
-    
-    DropButton.MouseButton1Click:Connect(function()
-        Open = not Open
-        OptionsFrame.Size = Open and UDim2.new(1, 0, 0, #options * 30) or UDim2.new(1, 0, 0, 0)
-    end)
-    
-    for _, option in pairs(options) do
-        local OptionButton = createObject("TextButton", {
-            Name = option,
-            Parent = OptionsFrame,
-            BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-            Size = UDim2.new(1, 0, 0, 30),
-            Text = option,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            Font = Enum.Font.Gotham
-        })
-        
-        OptionButton.MouseButton1Click:Connect(function()
-            pcall(callback, option)
-            Label.Text = option
-            OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
-            Open = false
-        end)
-    end
-    
-    return DropdownFrame
+    return SliderFrame
 end
 
 return UILibrary
