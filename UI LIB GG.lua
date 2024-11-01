@@ -1,9 +1,8 @@
--- AdvancedUILib.lua
-
-local AdvancedUILibrary = {}
+-- AdvancedUI.lua
+local AdvancedUI = {}
 
 -- Tema predeterminado
-AdvancedUILibrary.Theme = {
+AdvancedUI.Theme = {
     backgroundColor = Color3.fromRGB(40, 40, 40),
     buttonColor = Color3.fromRGB(70, 130, 180),
     textColor = Color3.fromRGB(255, 255, 255),
@@ -11,36 +10,40 @@ AdvancedUILibrary.Theme = {
     checkboxColor = Color3.fromRGB(60, 60, 60),
 }
 
--- Función para aplicar el tema
-function AdvancedUILibrary.applyTheme(theme)
-    AdvancedUILibrary.Theme = theme
+-- Aplicar un tema nuevo
+function AdvancedUI.applyTheme(theme)
+    AdvancedUI.Theme = theme
 end
 
--- Módulo de Ventana
-function AdvancedUILibrary.newWindow(title, size)
+-- Crear una ventana básica
+function AdvancedUI.newWindow(title, size)
     local Frame = Instance.new("Frame")
     Frame.Size = size or UDim2.new(0, 400, 0, 300)
-    Frame.Position = UDim2.new(0.5, -200, 0.5, -150)
-    Frame.BackgroundColor3 = AdvancedUILibrary.Theme.backgroundColor
+    Frame.BackgroundColor3 = AdvancedUI.Theme.backgroundColor
     Frame.BorderSizePixel = 0
+    Frame.Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2)
 
     local TitleBar = Instance.new("TextLabel")
     TitleBar.Size = UDim2.new(1, 0, 0, 30)
     TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    TitleBar.Text = title or "Window"
-    TitleBar.TextColor3 = AdvancedUILibrary.Theme.textColor
+    TitleBar.Text = title or "Ventana"
+    TitleBar.TextColor3 = AdvancedUI.Theme.textColor
+    TitleBar.Font = Enum.Font.SourceSansBold
+    TitleBar.TextSize = 18
     TitleBar.Parent = Frame
 
     return Frame
 end
 
--- Módulo de Botón
-function AdvancedUILibrary.newButton(text, size, clickFunction)
+-- Crear un botón
+function AdvancedUI.newButton(text, size, clickFunction)
     local Button = Instance.new("TextButton")
     Button.Size = size or UDim2.new(0, 100, 0, 50)
-    Button.Text = text or "Button"
-    Button.BackgroundColor3 = AdvancedUILibrary.Theme.buttonColor
-    Button.TextColor3 = AdvancedUILibrary.Theme.textColor
+    Button.Text = text or "Botón"
+    Button.BackgroundColor3 = AdvancedUI.Theme.buttonColor
+    Button.TextColor3 = AdvancedUI.Theme.textColor
+    Button.Font = Enum.Font.SourceSans
+    Button.TextSize = 16
 
     if clickFunction then
         Button.MouseButton1Click:Connect(clickFunction)
@@ -49,16 +52,16 @@ function AdvancedUILibrary.newButton(text, size, clickFunction)
     return Button
 end
 
--- Módulo de Slider
-function AdvancedUILibrary.newSlider(size, min, max, default, callback)
+-- Crear un slider
+function AdvancedUI.newSlider(size, min, max, default, callback)
     local Slider = Instance.new("Frame")
     Slider.Size = size or UDim2.new(0, 200, 0, 20)
-    Slider.BackgroundColor3 = AdvancedUILibrary.Theme.sliderColor
+    Slider.BackgroundColor3 = AdvancedUI.Theme.sliderColor
     Slider.BorderSizePixel = 0
 
     local Fill = Instance.new("Frame")
     Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-    Fill.BackgroundColor3 = AdvancedUILibrary.Theme.buttonColor
+    Fill.BackgroundColor3 = AdvancedUI.Theme.buttonColor
     Fill.Parent = Slider
 
     local UserInputService = game:GetService("UserInputService")
@@ -87,17 +90,17 @@ function AdvancedUILibrary.newSlider(size, min, max, default, callback)
     return Slider
 end
 
--- Módulo de Checkbox
-function AdvancedUILibrary.newCheckbox(size, callback)
+-- Crear un checkbox
+function AdvancedUI.newCheckbox(size, callback)
     local Checkbox = Instance.new("Frame")
     Checkbox.Size = size or UDim2.new(0, 20, 0, 20)
-    Checkbox.BackgroundColor3 = AdvancedUILibrary.Theme.checkboxColor
+    Checkbox.BackgroundColor3 = AdvancedUI.Theme.checkboxColor
     Checkbox.BorderSizePixel = 0
 
     local Checked = Instance.new("TextLabel")
     Checked.Size = UDim2.new(1, 0, 1, 0)
     Checked.Text = "✓"
-    Checked.TextColor3 = AdvancedUILibrary.Theme.textColor
+    Checked.TextColor3 = AdvancedUI.Theme.textColor
     Checked.Visible = false
     Checked.Parent = Checkbox
 
@@ -109,4 +112,4 @@ function AdvancedUILibrary.newCheckbox(size, callback)
     return Checkbox
 end
 
-return AdvancedUILibrary
+return AdvancedUI
